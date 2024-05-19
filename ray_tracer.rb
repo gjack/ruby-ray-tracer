@@ -15,7 +15,7 @@ class RayTracer
     @canvas ||= Canvas.new
   end
 
-  def canvas_to_viewport_vector(x, y) 
+  def canvas_to_viewport_coordinates(x, y)
     [x * viewport.width.to_f / canvas.width, y * viewport.height.to_f / canvas.height, camera.distance]
   end
 
@@ -65,8 +65,8 @@ class RayTracer
   def paint_scene
     (-canvas.width / 2 .. canvas.width / 2).each do |x|
       (-canvas.height / 2 .. canvas.height / 2).each do |y|
-        ctv_vector = canvas_to_viewport_vector(x, y)
-        color = trace_ray(camera.origin, ctv_vector, 1, INFINITY)
+        ctv = canvas_to_viewport_coordinates(x, y)
+        color = trace_ray(camera.origin, ctv, 1, INFINITY)
         canvas.put_pixel(x, y, color)
       end
     end
