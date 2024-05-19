@@ -3,7 +3,7 @@ require 'rmagick'
 class Canvas
   attr_reader :width, :height, :img
 
-  def initialize(width: 600, height: 600, filename: "demo.bmp")
+  def initialize(width: 600, height: 600)
     @width = width
     @height = height
   end
@@ -13,10 +13,13 @@ class Canvas
   end
 
   def put_pixel(x, y, color_codes)
-    img.pixel_color(x, y, "rgb(#{color_codes.join(', ')})")
+    sx = width / 2 + x
+    sy = height / 2 - y
+
+    img.pixel_color(sx, sy, "rgb(#{color_codes.join(', ')})")
   end
 
-  def save_image
+  def save_image(filename: "demo.bmp")
     img.write(filename)
   end
 end
