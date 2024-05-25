@@ -22,10 +22,26 @@ class Vector
   end
 
   def divide_by_scalar(num)
-    x = self.x / num
-    y = self.y / num
-    z = self.z / num
+    self.x = self.x / num
+    self.y = self.y / num
+    self.z = self.z / num
 
     self
+  end
+
+  def multiply_by_scalar(num)
+    self.x = self.x * num
+    self.y = self.y * num
+    self.z = self.z * num
+
+    self
+  end
+
+  def self.subtract(minuend:, subtrahend:)
+    new([minuend.x - subtrahend.x, minuend.y - subtrahend.y, minuend.z - subtrahend.z])
+  end
+
+  def invert_direction
+    multiply_by_scalar(-1)
   end
 end
