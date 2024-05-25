@@ -73,8 +73,8 @@ class RayTracer
       return [INFINITY, INFINITY]
     end
     
-    t1 = (-b + sqrt(discriminant)) / 2 * a
-    t2 = (-b - sqrt(discriminant)) / 2 * a
+    t1 = (-b + sqrt(discriminant)) / (2 * a)
+    t2 = (-b - sqrt(discriminant)) / (2 * a)
 
     [t1, t2]
   end
