@@ -40,7 +40,7 @@ class RayTracer
 
     # calculate the point where the light touches the sphere
     light_intersection = (0..2).map do |i|
-      origin[i] + canvas_to_viewport.map {|coord| coord * closest_t}[i]
+      origin[i] + (canvas_to_viewport[i] * closest_t)
     end
 
     # find the vector normal to the surface at the intersection point
@@ -50,11 +50,11 @@ class RayTracer
     normalized = normal_at_intersection.divide_by_scalar(normal_at_intersection.magnitude)
 
     # calculate the light intensity at the point
-    light_intensity = compute_lighting(light_intersection, normalized)
+    light_intensity = compute_lighting(light_intersection, normalized, Vector.new(canvas_to_viewport).invert_direction, closest_sphere[:specular])
 
     # calculate the shade of the color at the corresponding pixel
     closest_sphere[:color].map do |code|
-      code * light_intensity
+      [255, [0, code * light_intensity].max].min
     end
   end
 
@@ -88,12 +88,12 @@ class RayTracer
       end
     end
 
-    canvas.save_image(filename: "second_example.bmp")
+    canvas.save_image(filename: "third_example.bmp")
   end
 
   # calculate the light intensity for each point
   # by combining the intensity of all light sources
-  def compute_lighting(light_intersection, norm)
+  def compute_lighting(light_intersection, norm, vector_obj_camera, specular)
     intensity = 0.0
 
     scene[:lights].each do |light|
@@ -104,10 +104,21 @@ class RayTracer
 
         n_dot_l = norm.dot_product(light_ray)
 
+        # diffuse
         # if the product is zero this light source is not located in any useful place that contributes
         # to the ilumination of the scene
         if n_dot_l > 0
-          intensity += light[:intensity] * n_dot_l / (norm.magnitude * light_ray.magnitude)
+          intensity += light[:intensity] * (n_dot_l / (norm.magnitude * light_ray.magnitude))
+        end
+
+        # # specular
+        if specular != -1
+          reflection_vector = Vector.subtract(minuend: norm.multiply_by_scalar(2.0 * n_dot_l), subtrahend: light_ray)
+          ref_dot_vector_obj_camera = reflection_vector.dot_product(vector_obj_camera)
+
+          if ref_dot_vector_obj_camera > 0
+            intensity += light[:intensity] * (ref_dot_vector_obj_camera / (reflection_vector.magnitude * vector_obj_camera.magnitude))**specular
+          end
         end
       end
     end
@@ -130,22 +141,26 @@ class RayTracer
        {
           center: [0, -1, 3],
           radius: 1,
-          color: [255, 0, 0]  # Red
+          color: [255, 0, 0],  # Red
+          specular: 500 # shiny
         },
         {
           center: [2, 0, 4],
           radius: 1,
-          color: [0, 0, 255] # Blue
+          color: [0, 0, 255], # Blue
+          specular: 500 # shiny
         },
         {
           center: [-2, 0, 4],
           radius: 1,
-          color: [0, 255, 0] # Green
+          color: [0, 255, 0], # Green
+          specular: 10 # somewhat shiny
         },
         {
           center: [0, -5001, 0], # Yellow
           radius: 5000,
-          color: [255, 255, 0]
+          color: [255, 255, 0],
+          specular: 1000 # very shiny
         }
       ],
       lights: [
