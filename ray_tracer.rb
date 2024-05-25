@@ -24,7 +24,7 @@ class RayTracer
     closest_sphere = nil
 
     scene[:spheres].each do |sphere|
-      t1, t2 = intersect_ray_sphere(camera.origin, canvas_to_viewport, sphere)
+      t1, t2 = intersect_ray_sphere(origin, canvas_to_viewport, sphere)
       if (t_min .. t_max).cover?(t1) && t1 < closest_t 
         closest_t = t1
         closest_sphere = sphere
@@ -38,7 +38,24 @@ class RayTracer
       return BACKGROUND_COLOR
     end
 
-    closest_sphere[:color]
+    # calculate the point where the light touches the sphere
+    light_intersection = (0..2).map do |i|
+      origin[i] + canvas_to_viewport.map {|coord| coord * closest_t}[i]
+    end
+
+    # find the vector normal to the surface at the intersection point
+    normal_at_intersection = Vector.from_two_points(head: light_intersection, tail: closest_sphere[:center])
+
+    # normalize the vector
+    normalized = normal_at_intersection.divide_by_scalar(normal_at_intersection.magnitude)
+
+    # calculate the light intensity at the point
+    light_intensity = compute_lighting(light_intersection, normalized)
+
+    # calculate the shade of the color at the corresponding pixel
+    closest_sphere[:color].map do |code|
+      code * light_intensity
+    end
   end
 
   def intersect_ray_sphere(origin, canvas_to_viewport, sphere)
@@ -71,7 +88,30 @@ class RayTracer
       end
     end
 
-    canvas.save_image(filename: "first_example.bmp")
+    canvas.save_image(filename: "second_example.bmp")
+  end
+
+  # calculate the light intensity for each point
+  # by combining the intensity of all light sources
+  def compute_lighting(light_intersection, norm)
+    intensity = 0.0
+
+    scene[:lights].each do |light|
+      if light[:type] == "ambient"
+        intensity += light[:intensity]
+      else
+        light_ray = light[:type] == "point" ? Vector.from_two_points(head: light[:position], tail: light_intersection) : Vector.new(light[:direction])
+
+        n_dot_l = norm.dot_product(light_ray)
+
+        # if the product is zero this light source is not located in any useful place that contributes
+        # to the ilumination of the scene
+        if n_dot_l > 0
+          intensity += light[:intensity] * n_dot_l / (norm.magnitude * light_ray.magnitude)
+        end
+      end
+    end
+    intensity
   end
 
   def viewport
@@ -101,6 +141,27 @@ class RayTracer
           center: [-2, 0, 4],
           radius: 1,
           color: [0, 255, 0] # Green
+        },
+        {
+          center: [0, -5001, 0], # Yellow
+          radius: 5000,
+          color: [255, 255, 0]
+        }
+      ],
+      lights: [
+        {
+          type: "ambient",
+          intensity: 0.2
+        },
+        {
+          type: "point",
+          intensity: 0.6,
+          position: [2, 1, 0]
+        },
+        {
+          type: "directional",
+          intensity: 0.2,
+          direction: [1, 4, 4]
         }
       ]
     }
