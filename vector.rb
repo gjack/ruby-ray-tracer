@@ -1,7 +1,7 @@
 class Vector
   include Math
 
-  attr_reader :x, :y, :z
+  attr_accessor :x, :y, :z
 
   def self.from_two_points(tail:, head:)
     new([head[0] - tail[0], head[1] - tail[1], head[2] - tail[2]])
@@ -19,5 +19,13 @@ class Vector
 
   def magnitude
     sqrt(dot_product(self))
+  end
+
+  def divide_by_scalar(num)
+    x = self.x / num
+    y = self.y / num
+    z = self.z / num
+
+    self
   end
 end
