@@ -37,6 +37,15 @@ class Vector
     multiply(vect, -1)
   end
 
+  def self.multiply_vector_matrix(vect, matrix)
+    (0..2).map do |i|
+      (0..2).inject(0) do |sum, j|
+        sum += vect[j] * matrix[i][j]
+        sum
+      end
+    end
+  end
+
   def as_coords
     [x, y, z]
   end
