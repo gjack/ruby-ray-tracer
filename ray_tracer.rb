@@ -41,7 +41,7 @@ class RayTracer
 
     # calculate the shade of the color at the corresponding pixel
     closest_sphere[:color].map do |code|
-      [255, [0, code * light_intensity].max].min
+      [255, [0 , (code * light_intensity)].max].min
     end
   end
 
@@ -94,7 +94,7 @@ class RayTracer
       end
     end
 
-    canvas.save_image(filename: "third_example.bmp")
+    canvas.save_image(filename: "fourth_example.bmp")
   end
 
   # calculate the light intensity for each point
@@ -106,11 +106,22 @@ class RayTracer
       if light[:type] == "ambient"
         intensity += light[:intensity]
       else
-        light_ray = light[:type] == "point" ? Vector.from_two_points(head: light[:position], tail: light_intersection) : Vector.new(light[:direction])
+        light_ray = if light[:type] == "point"
+          t_max = 1
+          Vector.from_two_points(head: light[:position], tail: light_intersection)
+        else
+          t_max = INFINITY
+          Vector.new(light[:direction])
+        end
 
-        n_dot_l = norm.dot_product(light_ray)
+        # Shadow check
+        shadow_sphere, _shadow_t = closest_intersection(light_intersection, light_ray.as_coords, 0.0001, t_max)
+
+        return intensity unless shadow_sphere.nil?
 
         # diffuse
+        n_dot_l = norm.dot_product(light_ray)
+
         # if the product is zero this light source is not located in any useful place that contributes
         # to the ilumination of the scene
         if n_dot_l > 0

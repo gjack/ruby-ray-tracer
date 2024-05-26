@@ -44,4 +44,8 @@ class Vector
   def invert_direction
     multiply_by_scalar(-1)
   end
+
+  def as_coords
+    [x, y, z]
+  end
 end
