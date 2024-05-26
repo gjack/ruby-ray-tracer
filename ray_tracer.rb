@@ -20,20 +20,7 @@ class RayTracer
   end
 
   def trace_ray(origin, canvas_to_viewport, t_min, t_max)
-    closest_t = INFINITY
-    closest_sphere = nil
-
-    scene[:spheres].each do |sphere|
-      t1, t2 = intersect_ray_sphere(origin, canvas_to_viewport, sphere)
-      if (t_min .. t_max).cover?(t1) && t1 < closest_t 
-        closest_t = t1
-        closest_sphere = sphere
-      end
-      if (t_min .. t_max).cover?(t2) && t2 < closest_t 
-        closest_t = t2
-        closest_sphere = sphere
-      end
-    end
+    closest_sphere, closest_t = closest_intersection(origin, canvas_to_viewport, t_min, t_max)
     if closest_sphere.nil?
       return BACKGROUND_COLOR
     end
@@ -56,6 +43,25 @@ class RayTracer
     closest_sphere[:color].map do |code|
       [255, [0, code * light_intensity].max].min
     end
+  end
+
+  def closest_intersection(origin, canvas_to_viewport, t_min, t_max)
+    closest_t = INFINITY
+    closest_sphere = nil
+
+    scene[:spheres].each do |sphere|
+      t1, t2 = intersect_ray_sphere(origin, canvas_to_viewport, sphere)
+      if (t_min .. t_max).cover?(t1) && t1 < closest_t 
+        closest_t = t1
+        closest_sphere = sphere
+      end
+      if (t_min .. t_max).cover?(t2) && t2 < closest_t 
+        closest_t = t2
+        closest_sphere = sphere
+      end
+    end
+
+    [closest_sphere, closest_t]
   end
 
   def intersect_ray_sphere(origin, canvas_to_viewport, sphere)
