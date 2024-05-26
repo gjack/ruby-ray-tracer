@@ -34,10 +34,10 @@ class RayTracer
     normal_at_intersection = Vector.from_two_points(head: light_intersection, tail: closest_sphere[:center])
 
     # normalize the vector
-    normalized = normal_at_intersection.divide_by_scalar(normal_at_intersection.magnitude)
+    normalized = Vector.divide(normal_at_intersection, normal_at_intersection.magnitude)
 
     # calculate the light intensity at the point
-    light_intensity = compute_lighting(light_intersection, normalized, Vector.new(canvas_to_viewport).invert_direction, closest_sphere[:specular])
+    light_intensity = compute_lighting(light_intersection, normalized, Vector.invert_direction(Vector.new(canvas_to_viewport)), closest_sphere[:specular])
 
     # calculate the shade of the color at the corresponding pixel
     closest_sphere[:color].map do |code|
@@ -98,7 +98,7 @@ class RayTracer
   end
 
   def reflect_ray(ray, normal)
-    Vector.subtract(minuend: normal.multiply_by_scalar(2.0 * normal.dot_product(ray)), subtrahend: ray)
+    Vector.subtract(minuend: Vector.multiply(normal, 2.0 * normal.dot_product(ray)), subtrahend: ray)
   end
 
   # calculate the light intensity for each point
@@ -132,7 +132,7 @@ class RayTracer
           intensity += light[:intensity] * (n_dot_l / (norm.magnitude * light_ray.magnitude))
         end
 
-        # # specular
+        # specular
         if specular != -1
           reflection_vector = reflect_ray(light_ray, norm)
           ref_dot_vector_obj_camera = reflection_vector.dot_product(vector_obj_camera)

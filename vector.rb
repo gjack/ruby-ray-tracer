@@ -21,28 +21,20 @@ class Vector
     sqrt(dot_product(self))
   end
 
-  def divide_by_scalar(num)
-    self.x = self.x / num
-    self.y = self.y / num
-    self.z = self.z / num
-
-    self
+  def self.multiply(vect, scalar)
+    new([vect.x * scalar, vect.y * scalar, vect.z * scalar])
   end
 
-  def multiply_by_scalar(num)
-    self.x = self.x * num
-    self.y = self.y * num
-    self.z = self.z * num
-
-    self
+  def self.divide(vect, scalar)
+    new([vect.x / scalar, vect.y / scalar, vect.z / scalar])
   end
 
   def self.subtract(minuend:, subtrahend:)
     new([minuend.x - subtrahend.x, minuend.y - subtrahend.y, minuend.z - subtrahend.z])
   end
 
-  def invert_direction
-    multiply_by_scalar(-1)
+  def self.invert_direction(vect)
+    multiply(vect, -1)
   end
 
   def as_coords
