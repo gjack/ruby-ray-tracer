@@ -9,7 +9,7 @@ class RayTracer
   attr_reader :canvas, :camera, :viewport, :scene
 
   INFINITY = Float::INFINITY
-  BACKGROUND_COLOR = [255, 255, 255] # white
+  BACKGROUND_COLOR = [0, 0, 0] # black
 
   def initialize
     @canvas ||= Canvas.new
@@ -19,7 +19,7 @@ class RayTracer
     [x * viewport.width.to_f / canvas.width, y * viewport.height.to_f / canvas.height, camera.distance]
   end
 
-  def trace_ray(origin, canvas_to_viewport, t_min, t_max)
+  def trace_ray(origin, canvas_to_viewport, t_min, t_max, recursion_depth = 3)
     closest_sphere, closest_t = closest_intersection(origin, canvas_to_viewport, t_min, t_max)
     if closest_sphere.nil?
       return BACKGROUND_COLOR
@@ -40,9 +40,26 @@ class RayTracer
     light_intensity = compute_lighting(light_intersection, normalized, Vector.invert_direction(Vector.new(canvas_to_viewport)), closest_sphere[:specular])
 
     # calculate the shade of the color at the corresponding pixel
-    closest_sphere[:color].map do |code|
+    local_color = closest_sphere[:color].map do |code|
       [255, [0 , (code * light_intensity)].max].min
     end
+
+    # if we hit the recursion limit or the object is not reflective we are done
+    rf = closest_sphere[:reflective]
+    if recursion_depth <= 0 || rf <= 0
+      return local_color
+    end
+
+    # compute the reflected color
+    reflected = reflect_ray(Vector.invert_direction(Vector.new(canvas_to_viewport)), normalized)
+    reflected_color = trace_ray(light_intersection, reflected.as_coords, 0.0001, INFINITY, recursion_depth - 1)
+
+    # blend colors
+
+    local_weigthed =local_color.map {|code| code * (1 - rf) }
+    reflected_weighted =  reflected_color.map { |code| code * rf }
+
+    [local_weigthed[0] + reflected_weighted[0], local_weigthed[1] + reflected_weighted[1], local_weigthed[2] + reflected_weighted[2]]
   end
 
   def closest_intersection(origin, canvas_to_viewport, t_min, t_max)
@@ -94,7 +111,7 @@ class RayTracer
       end
     end
 
-    canvas.save_image(filename: "fourth_example.bmp")
+    canvas.save_image(filename: "fifth_example.bmp")
   end
 
   def reflect_ray(ray, normal)
@@ -163,25 +180,29 @@ class RayTracer
           center: [0, -1, 3],
           radius: 1,
           color: [255, 0, 0],  # Red
-          specular: 500 # shiny
+          specular: 500, # shiny
+          reflective: 0.2  # a little reflective
         },
         {
           center: [2, 0, 4],
           radius: 1,
           color: [0, 0, 255], # Blue
-          specular: 500 # shiny
+          specular: 500, # shiny
+          reflective: 0.3 # more reflective
         },
         {
           center: [-2, 0, 4],
           radius: 1,
           color: [0, 255, 0], # Green
-          specular: 10 # somewhat shiny
+          specular: 10, # somewhat shiny
+          reflective: 0.4
         },
         {
           center: [0, -5001, 0], # Yellow
           radius: 5000,
           color: [255, 255, 0],
-          specular: 1000 # very shiny
+          specular: 1000, # very shiny
+          reflective: 0.5 # half of possible reflectiveness
         }
       ],
       lights: [
