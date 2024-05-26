@@ -97,6 +97,10 @@ class RayTracer
     canvas.save_image(filename: "fourth_example.bmp")
   end
 
+  def reflect_ray(ray, normal)
+    Vector.subtract(minuend: normal.multiply_by_scalar(2.0 * normal.dot_product(ray)), subtrahend: ray)
+  end
+
   # calculate the light intensity for each point
   # by combining the intensity of all light sources
   def compute_lighting(light_intersection, norm, vector_obj_camera, specular)
@@ -130,7 +134,7 @@ class RayTracer
 
         # # specular
         if specular != -1
-          reflection_vector = Vector.subtract(minuend: norm.multiply_by_scalar(2.0 * n_dot_l), subtrahend: light_ray)
+          reflection_vector = reflect_ray(light_ray, norm)
           ref_dot_vector_obj_camera = reflection_vector.dot_product(vector_obj_camera)
 
           if ref_dot_vector_obj_camera > 0
