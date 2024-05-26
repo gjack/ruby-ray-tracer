@@ -106,12 +106,13 @@ class RayTracer
     (-canvas.width / 2 .. canvas.width / 2).each do |x|
       (-canvas.height / 2 .. canvas.height / 2).each do |y|
         ctv = canvas_to_viewport_coordinates(x, y)
-        color = trace_ray(camera.origin, ctv, 1, INFINITY)
+        direction = Vector.multiply_vector_matrix(ctv, camera.rotation)
+        color = trace_ray(camera.origin, direction, 1, INFINITY)
         canvas.put_pixel(x, y, color)
       end
     end
 
-    canvas.save_image(filename: "fifth_example.bmp")
+    canvas.save_image(filename: "sixth_example.bmp")
   end
 
   def reflect_ray(ray, normal)
@@ -173,7 +174,7 @@ class RayTracer
 
   def scene
     @scene ||= {
-      camera: Camera.new,
+      camera: Camera.new(rotation: [[0.7071, 0, -0.7071], [0, 1, 0], [0.7071, 0, 0.7071]], origin: [3, 0, 1]),
       viewport: Viewport.new,
       spheres: [
        {
